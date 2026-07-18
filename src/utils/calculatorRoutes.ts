@@ -12,4 +12,8 @@ export const CALCULATOR_ROUTES: Record<string, string> = {
   'debt-consolidation': '/loans/debt-consolidation',
   'step-up-sip':        '/investments/step-up-sip',
   'goal-planner':       '/investments/goal-planner',
+  'normal-sip':         '/investments/normal-sip',
+  'fd':                 '/investments/fd',
+  'rd':                 '/investments/rd',
+  'cagr':               '/investments/cagr',
 }

@@ -17,6 +17,10 @@ import DebtConsolidationCalculator from './calculators/loans/DebtConsolidation'
 // Investments calculators
 import StepUpSIPCalculator  from './calculators/investments/StepUpSIP'
 import GoalPlannerCalculator from './calculators/investments/GoalPlanner'
+import NormalSIPCalculator  from './calculators/investments/NormalSIP'
+import FDCalculator         from './calculators/investments/FD'
+import RDCalculator         from './calculators/investments/RD'
+import CAGRCalculator       from './calculators/investments/CAGR'
 import { useBootStores } from './hooks/useStores'
 import styles from './App.module.css'
 
@@ -62,6 +66,10 @@ const router = createHashRouter([
           { index: true,            element: <InvestmentsPage /> },
           { path: 'step-up-sip',   element: <StepUpSIPCalculator /> },
           { path: 'goal-planner',  element: <GoalPlannerCalculator /> },
+          { path: 'normal-sip',    element: <NormalSIPCalculator /> },
+          { path: 'fd',            element: <FDCalculator /> },
+          { path: 'rd',            element: <RDCalculator /> },
+          { path: 'cagr',          element: <CAGRCalculator /> },
         ],
       },
       { path: 'favorites', element: <FavoritesPage /> },

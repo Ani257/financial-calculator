@@ -11,16 +11,34 @@ function IconChevronRight() {
 
 const calculators = [
   {
+    id: 'normal-sip',
+    name: 'SIP Calculator',
+    description: 'Estimate corpus from a fixed monthly SIP over time.',
+  },
+  {
     id: 'step-up-sip',
     name: 'Step-Up SIP',
     description: 'How your wealth grows when you increase your SIP every year.',
-    available: true,
   },
   {
     id: 'goal-planner',
     name: 'Goal Planner',
     description: 'Find the monthly SIP required to reach your target wealth.',
-    available: true,
+  },
+  {
+    id: 'fd',
+    name: 'Fixed Deposit',
+    description: 'FD maturity with quarterly compounding — the Indian bank standard.',
+  },
+  {
+    id: 'rd',
+    name: 'Recurring Deposit',
+    description: 'RD maturity value with quarterly compounding on monthly deposits.',
+  },
+  {
+    id: 'cagr',
+    name: 'CAGR Calculator',
+    description: 'Compound Annual Growth Rate — the true annual return of any investment.',
   },
 ]
 

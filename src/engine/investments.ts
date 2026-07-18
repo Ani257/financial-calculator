@@ -282,5 +282,287 @@ export function calcGoalPlanner(inputs: GoalPlannerInputs): GoalPlannerResult {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Normal SIP Calculator
+//
+// Standard fixed monthly SIP without step-ups.
+// End-of-month (ordinary annuity) formula:
+//   FV = P × [(1 + r)^n − 1] / r
+// where r = annualReturnPct / 12 / 100, n = tenureYears × 12
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface NormalSIPInputs {
+  /** Fixed monthly investment amount */
+  monthlyInvestment: number
+  /** Expected annual return in percent (e.g. 12 for 12%) */
+  annualReturnPct: number
+  /** Investment tenure in years */
+  tenureYears: number
+}
+
+export interface NormalSIPResult {
+  totalInvested: number
+  estimatedWealth: number
+  wealthGained: number
+  absoluteReturn: number
+
+  totalInvestedFmt: string
+  estimatedWealthFmt: string
+  wealthGainedFmt: string
+  absoluteReturnFmt: string
+}
+
+export function validateNormalSIP(
+  inputs: NormalSIPInputs
+): Array<{ field: keyof NormalSIPInputs; message: string }> {
+  const errors: Array<{ field: keyof NormalSIPInputs; message: string }> = []
+
+  if (isNaN(inputs.monthlyInvestment) || inputs.monthlyInvestment <= 0)
+    errors.push({ field: 'monthlyInvestment', message: 'Must be greater than zero' })
+
+  if (isNaN(inputs.annualReturnPct) || inputs.annualReturnPct <= 0 || inputs.annualReturnPct > 100)
+    errors.push({ field: 'annualReturnPct', message: 'Must be between 0.01 and 100' })
+
+  if (
+    isNaN(inputs.tenureYears) ||
+    inputs.tenureYears <= 0 ||
+    inputs.tenureYears > 50 ||
+    !Number.isInteger(inputs.tenureYears)
+  )
+    errors.push({ field: 'tenureYears', message: 'Must be a whole number between 1 and 50' })
+
+  return errors
+}
+
+export function calcNormalSIP(inputs: NormalSIPInputs): NormalSIPResult {
+  const { monthlyInvestment, annualReturnPct, tenureYears } = inputs
+  const r = annualReturnPct / 12 / 100
+  const n = tenureYears * 12
+
+  const estimatedWealth =
+    r === 0
+      ? monthlyInvestment * n
+      : monthlyInvestment * ((Math.pow(1 + r, n) - 1) / r)
+
+  const totalInvested  = monthlyInvestment * n
+  const wealthGained   = estimatedWealth - totalInvested
+  const absoluteReturn = totalInvested > 0 ? (wealthGained / totalInvested) * 100 : 0
+
+  return {
+    totalInvested,
+    estimatedWealth,
+    wealthGained,
+    absoluteReturn,
+
+    totalInvestedFmt:   currency(totalInvested),
+    estimatedWealthFmt: currency(estimatedWealth),
+    wealthGainedFmt:    currency(wealthGained),
+    absoluteReturnFmt:  pct(absoluteReturn, 1),
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fixed Deposit (FD) Calculator
+//
+// Indian banks compound quarterly (n = 4) by default.
+// Formula: A = P × (1 + r/n)^(n×t)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface FDInputs {
+  /** Principal amount */
+  principal: number
+  /** Annual interest rate in percent (e.g. 7 for 7%) */
+  annualRate: number
+  /** Tenure in years */
+  tenureYears: number
+}
+
+export interface FDResult {
+  totalInvestment: number
+  maturityAmount: number
+  totalInterest: number
+
+  totalInvestmentFmt: string
+  maturityAmountFmt: string
+  totalInterestFmt: string
+}
+
+export function validateFD(
+  inputs: FDInputs
+): Array<{ field: keyof FDInputs; message: string }> {
+  const errors: Array<{ field: keyof FDInputs; message: string }> = []
+
+  if (isNaN(inputs.principal) || inputs.principal <= 0)
+    errors.push({ field: 'principal', message: 'Must be greater than zero' })
+
+  if (isNaN(inputs.annualRate) || inputs.annualRate <= 0 || inputs.annualRate > 50)
+    errors.push({ field: 'annualRate', message: 'Must be between 0.01 and 50' })
+
+  if (
+    isNaN(inputs.tenureYears) ||
+    inputs.tenureYears <= 0 ||
+    inputs.tenureYears > 30
+  )
+    errors.push({ field: 'tenureYears', message: 'Must be between 0.1 and 30' })
+
+  return errors
+}
+
+export function calcFD(inputs: FDInputs): FDResult {
+  const { principal, annualRate, tenureYears } = inputs
+  const n = 4 // quarterly compounding
+  const r = annualRate / 100
+
+  const maturityAmount  = principal * Math.pow(1 + r / n, n * tenureYears)
+  const totalInterest   = maturityAmount - principal
+
+  return {
+    totalInvestment:    principal,
+    maturityAmount,
+    totalInterest,
+
+    totalInvestmentFmt: currency(principal),
+    maturityAmountFmt:  currency(maturityAmount),
+    totalInterestFmt:   currency(totalInterest),
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Recurring Deposit (RD) Calculator
+//
+// Indian RDs use quarterly compounding on monthly deposits.
+// Approach: derive an effective monthly rate from the quarterly rate,
+// then apply ordinary-annuity FV formula.
+//   effectiveMonthlyRate = (1 + annualRate/4/100)^(1/3) − 1
+//   Maturity = R × [(1 + i_m)^n − 1] / i_m
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface RDInputs {
+  /** Fixed monthly installment */
+  monthlyInstallment: number
+  /** Annual interest rate in percent */
+  annualRate: number
+  /** Tenure in years */
+  tenureYears: number
+}
+
+export interface RDResult {
+  totalInvestment: number
+  maturityAmount: number
+  totalInterest: number
+
+  totalInvestmentFmt: string
+  maturityAmountFmt: string
+  totalInterestFmt: string
+}
+
+export function validateRD(
+  inputs: RDInputs
+): Array<{ field: keyof RDInputs; message: string }> {
+  const errors: Array<{ field: keyof RDInputs; message: string }> = []
+
+  if (isNaN(inputs.monthlyInstallment) || inputs.monthlyInstallment <= 0)
+    errors.push({ field: 'monthlyInstallment', message: 'Must be greater than zero' })
+
+  if (isNaN(inputs.annualRate) || inputs.annualRate <= 0 || inputs.annualRate > 50)
+    errors.push({ field: 'annualRate', message: 'Must be between 0.01 and 50' })
+
+  if (
+    isNaN(inputs.tenureYears) ||
+    inputs.tenureYears <= 0 ||
+    inputs.tenureYears > 20 ||
+    !Number.isInteger(inputs.tenureYears)
+  )
+    errors.push({ field: 'tenureYears', message: 'Must be a whole number between 1 and 20' })
+
+  return errors
+}
+
+export function calcRD(inputs: RDInputs): RDResult {
+  const { monthlyInstallment, annualRate, tenureYears } = inputs
+  const n  = tenureYears * 12
+  // Effective monthly rate equivalent to quarterly compounding
+  const i_m = Math.pow(1 + annualRate / 4 / 100, 1 / 3) - 1
+
+  const maturityAmount =
+    i_m === 0
+      ? monthlyInstallment * n
+      : monthlyInstallment * ((Math.pow(1 + i_m, n) - 1) / i_m)
+
+  const totalInvestment = monthlyInstallment * n
+  const totalInterest   = maturityAmount - totalInvestment
+
+  return {
+    totalInvestment,
+    maturityAmount,
+    totalInterest,
+
+    totalInvestmentFmt: currency(totalInvestment),
+    maturityAmountFmt:  currency(maturityAmount),
+    totalInterestFmt:   currency(totalInterest),
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CAGR Calculator
+//
+// Formula: CAGR = (FV/PV)^(1/t) − 1
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface CAGRInputs {
+  /** Initial / beginning value */
+  initialValue: number
+  /** Final / ending value */
+  finalValue: number
+  /** Duration in years */
+  durationYears: number
+}
+
+export interface CAGRResult {
+  cagrPct: number
+  absoluteGrowthPct: number
+  totalProfit: number
+
+  cagrPctFmt: string
+  absoluteGrowthPctFmt: string
+  totalProfitFmt: string
+}
+
+export function validateCAGR(
+  inputs: CAGRInputs
+): Array<{ field: keyof CAGRInputs; message: string }> {
+  const errors: Array<{ field: keyof CAGRInputs; message: string }> = []
+
+  if (isNaN(inputs.initialValue) || inputs.initialValue <= 0)
+    errors.push({ field: 'initialValue', message: 'Must be greater than zero' })
+
+  if (isNaN(inputs.finalValue) || inputs.finalValue <= 0)
+    errors.push({ field: 'finalValue', message: 'Must be greater than zero' })
+
+  if (isNaN(inputs.durationYears) || inputs.durationYears <= 0 || inputs.durationYears > 100)
+    errors.push({ field: 'durationYears', message: 'Must be between 0.1 and 100' })
+
+  return errors
+}
+
+export function calcCAGR(inputs: CAGRInputs): CAGRResult {
+  const { initialValue, finalValue, durationYears } = inputs
+
+  const cagrDecimal       = Math.pow(finalValue / initialValue, 1 / durationYears) - 1
+  const cagrPct           = cagrDecimal * 100
+  const absoluteGrowthPct = ((finalValue - initialValue) / initialValue) * 100
+  const totalProfit       = finalValue - initialValue
+
+  return {
+    cagrPct,
+    absoluteGrowthPct,
+    totalProfit,
+
+    cagrPctFmt:           pct(cagrPct, 2),
+    absoluteGrowthPctFmt: pct(absoluteGrowthPct, 2),
+    totalProfitFmt:       currency(totalProfit),
+  }
+}
+
 // suppress unused-import lint for fmtInt (reserved for future display needs)
 void fmtInt
