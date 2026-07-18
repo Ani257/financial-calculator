@@ -14,16 +14,19 @@ const calculators = [
     id: 'emi',
     name: 'EMI Calculator',
     description: 'Monthly instalment amount for any loan.',
+    available: true,
   },
   {
     id: 'amortization',
     name: 'Amortization Schedule',
     description: 'Full month-by-month breakdown of principal and interest.',
+    available: true,
   },
   {
     id: 'debt-consolidation',
     name: 'Debt Consolidation',
     description: 'Compare multiple debts against a single consolidation loan.',
+    available: true,
   },
 ]
 

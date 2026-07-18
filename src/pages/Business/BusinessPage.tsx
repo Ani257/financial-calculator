@@ -25,8 +25,8 @@ const calculators = [
   {
     id: 'cash-runway',
     name: 'Cash Runway',
-    description: 'How long your current cash will last at the current burn rate.',
-    available: false,
+    description: 'How long your current cash will last at your net burn rate.',
+    available: true,
   },
 ]
 
@@ -48,20 +48,14 @@ export default function BusinessPage() {
         {calculators.map((calc) => (
           <li key={calc.id}>
             <button
-              className={[styles.item, !calc.available ? styles.itemDisabled : ''].filter(Boolean).join(' ')}
-              onClick={() => calc.available && navigate(`/business/${calc.id}`)}
-              disabled={!calc.available}
+              className={styles.item}
+              onClick={() => navigate(`/business/${calc.id}`)}
             >
               <div className={styles.itemInfo}>
-                <span className={styles.itemName}>
-                  {calc.name}
-                  {!calc.available && <span className={styles.soon}>Soon</span>}
-                </span>
+                <span className={styles.itemName}>{calc.name}</span>
                 <span className={styles.itemDesc}>{calc.description}</span>
               </div>
-              {calc.available && (
-                <span className={styles.chevron}><IconChevronRight /></span>
-              )}
+              <span className={styles.chevron}><IconChevronRight /></span>
             </button>
           </li>
         ))}

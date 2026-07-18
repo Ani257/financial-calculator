@@ -290,5 +290,64 @@ export function calcBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// (Cash Runway will be added here in the next task.)
+// Cash Runway  (focused calculator — takes burn rate as a direct input)
 // ─────────────────────────────────────────────────────────────────────────────
+
+export interface CashRunwayInputs {
+  /** Current cash balance */
+  currentCash: number
+  /** Net monthly burn rate (expenses minus revenue) */
+  monthlyBurnRate: number
+}
+
+export interface CashRunwayResult {
+  runwayMonths: number
+  runwayFmt: string
+  runwayDateFmt: string
+  currentCashFmt: string
+  monthlyBurnRateFmt: string
+  /** Projected cash at 3 / 6 / 12 month marks */
+  projections: Array<{ label: string; value: string; exhausted: boolean }>
+}
+
+export function validateCashRunway(
+  inputs: CashRunwayInputs
+): Array<{ field: keyof CashRunwayInputs; message: string }> {
+  const errors: Array<{ field: keyof CashRunwayInputs; message: string }> = []
+
+  if (isNaN(inputs.currentCash) || inputs.currentCash <= 0)
+    errors.push({ field: 'currentCash', message: 'Must be greater than zero' })
+
+  if (isNaN(inputs.monthlyBurnRate) || inputs.monthlyBurnRate <= 0)
+    errors.push({ field: 'monthlyBurnRate', message: 'Must be greater than zero (net cash consumed per month)' })
+
+  return errors
+}
+
+export function calcCashRunway(inputs: CashRunwayInputs): CashRunwayResult {
+  const { currentCash, monthlyBurnRate } = inputs
+  const runwayMonths = currentCash / monthlyBurnRate
+
+  const milestones = [3, 6, 9, 12, 18, 24]
+  const projections = milestones
+    .filter((m) => m <= Math.ceil(runwayMonths) + 6)
+    .slice(0, 4)
+    .map((m) => {
+      const remaining = currentCash - monthlyBurnRate * m
+      const exhausted = remaining <= 0
+      return {
+        label: `${m} months`,
+        value: exhausted ? '$0 (exhausted)' : formatCurrency(remaining),
+        exhausted,
+      }
+    })
+
+  return {
+    runwayMonths,
+    runwayFmt: formatMonths(runwayMonths),
+    runwayDateFmt: formatRunwayDate(runwayMonths),
+    currentCashFmt: formatCurrency(currentCash),
+    monthlyBurnRateFmt: formatCurrency(monthlyBurnRate),
+    projections,
+  }
+}
