@@ -18,11 +18,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Web Dependencies
-        run: npm install --include=dev
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm install -g vite
 
-      - name: Build Production Web Assets
-        run: NODE_ENV=development npm run build
+      - name: Build Web Assets
+        run: vite build
 
       - name: Sync Capacitor to Android
         run: npx cap sync android
