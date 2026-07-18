@@ -6,6 +6,9 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5000,
+    strictPort: true,
+    // Required for Replit's proxy iframe to render the preview correctly.
+    // `true` disables Vite 6's host-header security check for all origins.
     allowedHosts: true,
   },
   build: {

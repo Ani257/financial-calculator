@@ -17,15 +17,15 @@ const calculators = [
     available: true,
   },
   {
+    id: 'break-even',
+    name: 'Break-Even',
+    description: 'The unit volume and revenue at which total costs equal total income.',
+    available: true,
+  },
+  {
     id: 'cash-runway',
     name: 'Cash Runway',
     description: 'How long your current cash will last at the current burn rate.',
-    available: false,
-  },
-  {
-    id: 'break-even',
-    name: 'Break-Even',
-    description: 'The revenue point where total costs equal total income.',
     available: false,
   },
 ]

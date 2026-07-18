@@ -203,6 +203,92 @@ export function calcHistoricalBurn(inputs: HistoricalBurnInputs): HistoricalBurn
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// (Additional calculators — Cash Runway, Break-Even — will be added here in
-//  subsequent tasks, keeping this file as the single business engine module.)
+// Break-Even
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface BreakEvenInputs {
+  /** Total monthly fixed costs (rent, salaries, insurance, etc.) */
+  fixedCosts: number
+  /** Variable cost incurred per unit produced/sold */
+  variableCostPerUnit: number
+  /** Revenue received per unit sold */
+  sellingPricePerUnit: number
+}
+
+export interface BreakEvenResult {
+  /** Units needed to cover all costs */
+  breakEvenUnits: number
+  /** Revenue needed to cover all costs */
+  breakEvenRevenue: number
+  /** Revenue minus variable cost, per unit */
+  contributionMargin: number
+  /** Contribution margin as a percentage of selling price */
+  contributionMarginPct: number
+
+  // Formatted strings for display
+  breakEvenUnitsFmt: string
+  breakEvenRevenueFmt: string
+  contributionMarginFmt: string
+  contributionMarginPctFmt: string
+  fixedCostsFmt: string
+}
+
+export function validateBreakEven(
+  inputs: BreakEvenInputs
+): Array<{ field: keyof BreakEvenInputs; message: string }> {
+  const errors: Array<{ field: keyof BreakEvenInputs; message: string }> = []
+
+  if (isNaN(inputs.fixedCosts) || inputs.fixedCosts <= 0)
+    errors.push({ field: 'fixedCosts', message: 'Must be greater than zero' })
+
+  if (isNaN(inputs.variableCostPerUnit) || inputs.variableCostPerUnit < 0)
+    errors.push({ field: 'variableCostPerUnit', message: 'Must be zero or greater' })
+
+  if (isNaN(inputs.sellingPricePerUnit) || inputs.sellingPricePerUnit <= 0)
+    errors.push({ field: 'sellingPricePerUnit', message: 'Must be greater than zero' })
+
+  if (
+    !isNaN(inputs.sellingPricePerUnit) &&
+    !isNaN(inputs.variableCostPerUnit) &&
+    inputs.sellingPricePerUnit > 0 &&
+    inputs.variableCostPerUnit >= inputs.sellingPricePerUnit
+  ) {
+    errors.push({
+      field: 'variableCostPerUnit',
+      message: 'Variable cost must be less than selling price (negative margin)',
+    })
+  }
+
+  return errors
+}
+
+export function calcBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
+  const { fixedCosts, variableCostPerUnit, sellingPricePerUnit } = inputs
+
+  const contributionMargin    = sellingPricePerUnit - variableCostPerUnit
+  const contributionMarginPct = (contributionMargin / sellingPricePerUnit) * 100
+  const breakEvenUnits        = fixedCosts / contributionMargin
+  const breakEvenRevenue      = breakEvenUnits * sellingPricePerUnit
+
+  const unitsFmt = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  })
+
+  return {
+    breakEvenUnits,
+    breakEvenRevenue,
+    contributionMargin,
+    contributionMarginPct,
+
+    breakEvenUnitsFmt:        `${unitsFmt.format(breakEvenUnits)} units`,
+    breakEvenRevenueFmt:      formatCurrency(breakEvenRevenue),
+    contributionMarginFmt:    formatCurrency(contributionMargin),
+    contributionMarginPctFmt: `${fmt.format(contributionMarginPct)}%`,
+    fixedCostsFmt:            formatCurrency(fixedCosts),
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// (Cash Runway will be added here in the next task.)
 // ─────────────────────────────────────────────────────────────────────────────

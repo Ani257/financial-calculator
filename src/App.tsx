@@ -7,6 +7,7 @@ import InvestmentsPage from './pages/Investments/InvestmentsPage'
 import FavoritesPage from './pages/Favorites/FavoritesPage'
 import RecentsPage from './pages/Recents/RecentsPage'
 import BurnRateCalculator from './calculators/business/BurnRate'
+import BreakEvenCalculator from './calculators/business/BreakEven'
 import { useBootStores } from './hooks/useStores'
 import styles from './App.module.css'
 
@@ -33,7 +34,8 @@ const router = createHashRouter([
         path: 'business',
         children: [
           { index: true, element: <BusinessPage /> },
-          { path: 'burn-rate', element: <BurnRateCalculator /> },
+          { path: 'burn-rate',  element: <BurnRateCalculator /> },
+          { path: 'break-even', element: <BreakEvenCalculator /> },
         ],
       },
       { path: 'loans', element: <LoansPage /> },
