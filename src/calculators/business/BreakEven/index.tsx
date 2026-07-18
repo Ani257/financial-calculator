@@ -37,8 +37,8 @@ export default function BreakEvenCalculator() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function setField(key: string, value: string) {
-    setFields((prev) => ({ ...prev, [key]: value }))
-    setErrors((prev) => ({ ...prev, [key]: undefined }))
+    setFields((prev: typeof EMPTY) => ({ ...prev, [key]: value }))
+    setErrors((prev: Partial<Record<keyof BreakEvenInputs, string>>) => ({ ...prev, [key]: undefined }))
   }
 
   function handleReset() {
