@@ -40,6 +40,16 @@ const calculators = [
     name: 'CAGR Calculator',
     description: 'Compound Annual Growth Rate — the true annual return of any investment.',
   },
+  {
+    id: 'swp',
+    name: 'SWP Calculator',
+    description: 'Systematic Withdrawal Plan with inflation-adjusted monthly withdrawals.',
+  },
+  {
+    id: 'retirement-planner',
+    name: 'Retirement Planner',
+    description: 'Monthly SIP needed to retire comfortably at your target age.',
+  },
 ]
 
 export default function InvestmentsPage() {

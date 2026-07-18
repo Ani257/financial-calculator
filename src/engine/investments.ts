@@ -564,5 +564,252 @@ export function calcCAGR(inputs: CAGRInputs): CAGRResult {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SWP with Inflation
+//
+// The corpus compounds monthly at the expected return rate.
+// Each month, the current monthly withdrawal is subtracted.
+// At the end of every 12-month block the withdrawal is stepped up by inflation.
+// If the corpus hits ≤ 0 before tenure ends, depletion is recorded.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface SWPInputs {
+  /** Starting corpus / total investment */
+  corpus: number
+  /** Initial monthly withdrawal amount */
+  monthlyWithdrawal: number
+  /** Expected annual return on the invested corpus (%) */
+  annualReturnPct: number
+  /** Expected annual inflation by which withdrawal steps up each year (%) */
+  annualInflationPct: number
+  /** Tenure in years */
+  tenureYears: number
+}
+
+export interface SWPResult {
+  totalWithdrawn: number
+  finalCorpus: number
+  depleted: boolean
+  /** 1-based month number at which corpus reached zero (only when depleted) */
+  depletionMonth?: number
+
+  totalWithdrawnFmt: string
+  finalCorpusFmt: string
+  /** Human-readable depletion label, e.g. "Month 37 (Year 4 of tenure)" */
+  depletionLabel?: string
+}
+
+export function validateSWP(
+  inputs: SWPInputs
+): Array<{ field: keyof SWPInputs; message: string }> {
+  const errors: Array<{ field: keyof SWPInputs; message: string }> = []
+
+  if (isNaN(inputs.corpus) || inputs.corpus <= 0)
+    errors.push({ field: 'corpus', message: 'Must be greater than zero' })
+
+  if (isNaN(inputs.monthlyWithdrawal) || inputs.monthlyWithdrawal <= 0)
+    errors.push({ field: 'monthlyWithdrawal', message: 'Must be greater than zero' })
+
+  if (isNaN(inputs.annualReturnPct) || inputs.annualReturnPct < 0 || inputs.annualReturnPct > 100)
+    errors.push({ field: 'annualReturnPct', message: 'Must be between 0 and 100' })
+
+  if (isNaN(inputs.annualInflationPct) || inputs.annualInflationPct < 0 || inputs.annualInflationPct > 50)
+    errors.push({ field: 'annualInflationPct', message: 'Must be between 0 and 50' })
+
+  if (
+    isNaN(inputs.tenureYears) ||
+    inputs.tenureYears <= 0 ||
+    inputs.tenureYears > 50 ||
+    !Number.isInteger(inputs.tenureYears)
+  )
+    errors.push({ field: 'tenureYears', message: 'Must be a whole number between 1 and 50' })
+
+  return errors
+}
+
+export function calcSWP(inputs: SWPInputs): SWPResult {
+  const { corpus: initialCorpus, monthlyWithdrawal: initialWithdrawal, annualReturnPct, annualInflationPct, tenureYears } = inputs
+  const monthlyRate  = annualReturnPct / 12 / 100
+  const totalMonths  = tenureYears * 12
+
+  let corpus          = initialCorpus
+  let withdrawal      = initialWithdrawal
+  let totalWithdrawn  = 0
+  let depleted        = false
+  let depletionMonth: number | undefined
+
+  for (let month = 1; month <= totalMonths; month++) {
+    // Corpus grows first
+    corpus += corpus * monthlyRate
+
+    // Subtract withdrawal
+    const actualWithdrawal = Math.min(withdrawal, corpus)
+    corpus        -= actualWithdrawal
+    totalWithdrawn += actualWithdrawal
+
+    if (corpus <= 0) {
+      corpus        = 0
+      depleted      = true
+      depletionMonth = month
+      break
+    }
+
+    // At the end of each 12-month block, step up the withdrawal by inflation
+    if (month % 12 === 0) {
+      withdrawal *= (1 + annualInflationPct / 100)
+    }
+  }
+
+  const depletionLabel = depletionMonth !== undefined
+    ? `Month ${depletionMonth} (Year ${Math.ceil(depletionMonth / 12)} of tenure)`
+    : undefined
+
+  return {
+    totalWithdrawn,
+    finalCorpus: corpus,
+    depleted,
+    depletionMonth,
+
+    totalWithdrawnFmt: currency(totalWithdrawn),
+    finalCorpusFmt:    depleted ? '₹0 (Corpus Depleted)' : currency(corpus),
+    depletionLabel,
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Retirement Planner
+//
+// Step 1: Inflate current monthly expenses to retirement date.
+// Step 2: Compute total corpus needed at retirement using PV of growing annuity
+//         (monthly withdrawals that increase with inflation, discounted at
+//          post-retirement return), covering the retirement duration.
+// Step 3: Subtract FV of current savings (compounded at pre-retirement return).
+// Step 4: Compute the monthly SIP to fill the shortfall over the accumulation phase.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface RetirementPlannerInputs {
+  currentAge: number
+  retirementAge: number
+  lifeExpectancy: number
+  currentMonthlyExpenses: number
+  /** Expected annual inflation (%) */
+  inflationPct: number
+  /** Expected annual return during accumulation phase (%) */
+  preRetirementReturnPct: number
+  /** Expected annual return during retirement / drawdown phase (%) */
+  postRetirementReturnPct: number
+  /** Amount already saved / invested */
+  currentSavings: number
+}
+
+export interface RetirementPlannerResult {
+  monthlyExpensesAtRetirement: number
+  totalCorpusRequired: number
+  fvCurrentSavings: number
+  shortfall: number
+  requiredMonthlySIP: number
+
+  monthlyExpensesAtRetirementFmt: string
+  totalCorpusRequiredFmt: string
+  fvCurrentSavingsFmt: string
+  shortfallFmt: string
+  requiredMonthlySIPFmt: string
+  yearsToRetirementLabel: string
+  retirementDurationLabel: string
+}
+
+export function validateRetirementPlanner(
+  inputs: RetirementPlannerInputs
+): Array<{ field: keyof RetirementPlannerInputs; message: string }> {
+  const errors: Array<{ field: keyof RetirementPlannerInputs; message: string }> = []
+
+  if (isNaN(inputs.currentAge) || inputs.currentAge < 18 || inputs.currentAge > 80 || !Number.isInteger(inputs.currentAge))
+    errors.push({ field: 'currentAge', message: 'Must be a whole number between 18 and 80' })
+
+  if (isNaN(inputs.retirementAge) || inputs.retirementAge <= inputs.currentAge || inputs.retirementAge > 85 || !Number.isInteger(inputs.retirementAge))
+    errors.push({ field: 'retirementAge', message: 'Must be a whole number greater than current age (max 85)' })
+
+  if (isNaN(inputs.lifeExpectancy) || inputs.lifeExpectancy <= inputs.retirementAge || inputs.lifeExpectancy > 110 || !Number.isInteger(inputs.lifeExpectancy))
+    errors.push({ field: 'lifeExpectancy', message: 'Must be a whole number greater than retirement age (max 110)' })
+
+  if (isNaN(inputs.currentMonthlyExpenses) || inputs.currentMonthlyExpenses <= 0)
+    errors.push({ field: 'currentMonthlyExpenses', message: 'Must be greater than zero' })
+
+  if (isNaN(inputs.inflationPct) || inputs.inflationPct < 0 || inputs.inflationPct > 30)
+    errors.push({ field: 'inflationPct', message: 'Must be between 0 and 30' })
+
+  if (isNaN(inputs.preRetirementReturnPct) || inputs.preRetirementReturnPct <= 0 || inputs.preRetirementReturnPct > 100)
+    errors.push({ field: 'preRetirementReturnPct', message: 'Must be between 0.01 and 100' })
+
+  if (isNaN(inputs.postRetirementReturnPct) || inputs.postRetirementReturnPct < 0 || inputs.postRetirementReturnPct > 100)
+    errors.push({ field: 'postRetirementReturnPct', message: 'Must be between 0 and 100' })
+
+  if (isNaN(inputs.currentSavings) || inputs.currentSavings < 0)
+    errors.push({ field: 'currentSavings', message: 'Cannot be negative' })
+
+  return errors
+}
+
+export function calcRetirementPlanner(inputs: RetirementPlannerInputs): RetirementPlannerResult {
+  const {
+    currentAge, retirementAge, lifeExpectancy,
+    currentMonthlyExpenses, inflationPct,
+    preRetirementReturnPct, postRetirementReturnPct, currentSavings,
+  } = inputs
+
+  const yearsToRetirement  = retirementAge - currentAge
+  const retirementDuration = lifeExpectancy - retirementAge   // years
+
+  // Step 1: Monthly expenses at retirement (annual inflation compounding)
+  const monthlyExpensesAtRetirement =
+    currentMonthlyExpenses * Math.pow(1 + inflationPct / 100, yearsToRetirement)
+
+  // Step 2: Total corpus needed at retirement
+  // PV of growing annuity: monthly withdrawals that grow with inflation,
+  // discounted at the post-retirement monthly return.
+  const r = postRetirementReturnPct / 12 / 100    // monthly discount rate
+  const g = Math.pow(1 + inflationPct / 100, 1 / 12) - 1  // monthly inflation growth
+  const n = retirementDuration * 12               // total retirement months
+
+  let totalCorpusRequired: number
+  if (Math.abs(r - g) < 1e-10) {
+    totalCorpusRequired = monthlyExpensesAtRetirement * n
+  } else {
+    totalCorpusRequired =
+      monthlyExpensesAtRetirement * (1 - Math.pow((1 + g) / (1 + r), n)) / (r - g)
+  }
+
+  // Step 3: FV of current savings at retirement (monthly compounding)
+  const preMonthlyRate = preRetirementReturnPct / 12 / 100
+  const accumMonths    = yearsToRetirement * 12
+  const fvCurrentSavings = currentSavings * Math.pow(1 + preMonthlyRate, accumMonths)
+
+  const shortfall = Math.max(0, totalCorpusRequired - fvCurrentSavings)
+
+  // Step 4: Required monthly SIP (ordinary annuity)
+  let requiredMonthlySIP: number
+  if (preMonthlyRate === 0 || accumMonths === 0) {
+    requiredMonthlySIP = accumMonths > 0 ? shortfall / accumMonths : shortfall
+  } else {
+    requiredMonthlySIP = shortfall * preMonthlyRate / (Math.pow(1 + preMonthlyRate, accumMonths) - 1)
+  }
+
+  return {
+    monthlyExpensesAtRetirement,
+    totalCorpusRequired,
+    fvCurrentSavings,
+    shortfall,
+    requiredMonthlySIP,
+
+    monthlyExpensesAtRetirementFmt: currency(monthlyExpensesAtRetirement),
+    totalCorpusRequiredFmt:         currency(totalCorpusRequired),
+    fvCurrentSavingsFmt:            currency(fvCurrentSavings),
+    shortfallFmt:                   currency(shortfall),
+    requiredMonthlySIPFmt:          currency(requiredMonthlySIP),
+    yearsToRetirementLabel:         `${yearsToRetirement} year${yearsToRetirement !== 1 ? 's' : ''}`,
+    retirementDurationLabel:        `${retirementDuration} year${retirementDuration !== 1 ? 's' : ''}`,
+  }
+}
+
 // suppress unused-import lint for fmtInt (reserved for future display needs)
 void fmtInt
