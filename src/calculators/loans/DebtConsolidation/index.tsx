@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import CalculatorShell from '../../../components/CalculatorShell/CalculatorShell'
 import NumericInput from '../../../components/NumericInput/NumericInput'
 import ResultCard, { type ResultRow } from '../../../components/ResultCard/ResultCard'
@@ -15,14 +16,13 @@ import styles from './DebtConsolidation.module.css'
 
 interface DebtField {
   id: string
-  label: string
   balance: string
   annualRate: string
   monthlyPayment: string
 }
 
-function makeDebt(label: string): DebtField {
-  return { id: crypto.randomUUID(), label, balance: '', annualRate: '', monthlyPayment: '' }
+function makeDebt(): DebtField {
+  return { id: crypto.randomUUID(), balance: '', annualRate: '', monthlyPayment: '' }
 }
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -47,20 +47,44 @@ function IconTrash() {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DebtConsolidationCalculator() {
-  const [debts, setDebts]         = useState<DebtField[]>([makeDebt('Debt 1'), makeDebt('Debt 2')])
+  const location = useLocation()
+  const [debts, setDebts]         = useState<DebtField[]>([makeDebt(), makeDebt()])
   const [newRate, setNewRate]     = useState('')
   const [newTenure, setNewTenure] = useState('')
   const [errors, setErrors]       = useState<Record<string, string>>({})
   const [result, setResult]       = useState<ReturnType<typeof calcDebtConsolidation> | null>(null)
 
+  // Hydrate from favorites / recents navigation
+  useEffect(() => {
+    const saved = (location.state as { inputs?: Record<string, string> } | null)?.inputs
+    if (!saved) return
+    if (saved.newRate)   setNewRate(saved.newRate)
+    if (saved.newTenure) setNewTenure(saved.newTenure)
+    // Debts are stored as a JSON array of {balance, annualRate, monthlyPayment}
+    if (saved.debts) {
+      try {
+        const parsed: Array<{ balance: string; annualRate: string; monthlyPayment: string }> =
+          JSON.parse(saved.debts)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setDebts(parsed.map((d) => ({
+            id:             crypto.randomUUID(),
+            balance:        d.balance        ?? '',
+            annualRate:     d.annualRate     ?? '',
+            monthlyPayment: d.monthlyPayment ?? '',
+          })))
+        }
+      } catch { /* ignore malformed data from older entries */ }
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Debt row management ───────────────────────────────────────────────────
-  function updateDebt(id: string, field: keyof Omit<DebtField, 'id' | 'label'>, value: string) {
+  function updateDebt(id: string, field: keyof Omit<DebtField, 'id'>, value: string) {
     setDebts((prev) => prev.map((d) => d.id === id ? { ...d, [field]: value } : d))
     setErrors((prev) => { const n = { ...prev }; delete n[`${id}.${field}`]; return n })
   }
 
   function addDebt() {
-    setDebts((prev) => [...prev, makeDebt(`Debt ${prev.length + 1}`)])
+    setDebts((prev) => [...prev, makeDebt()])
   }
 
   function removeDebt(id: string) {
@@ -69,7 +93,7 @@ export default function DebtConsolidationCalculator() {
 
   // ── Calculate ─────────────────────────────────────────────────────────────
   function handleReset() {
-    setDebts([makeDebt('Debt 1'), makeDebt('Debt 2')])
+    setDebts([makeDebt(), makeDebt()])
     setNewRate('')
     setNewTenure('')
     setErrors({})
@@ -77,9 +101,10 @@ export default function DebtConsolidationCalculator() {
   }
 
   function handleCalculate() {
-    const existingDebts: ExistingDebt[] = debts.map((d) => ({
+    // Derive label dynamically from index — never from stored state
+    const existingDebts: ExistingDebt[] = debts.map((d, index) => ({
       id:             d.id,
-      label:          d.label,
+      label:          `Debt ${index + 1}`,
       balance:        parseFloat(d.balance)        || 0,
       annualRate:     parseFloat(d.annualRate)      || 0,
       monthlyPayment: parseFloat(d.monthlyPayment)  || 0,
@@ -105,14 +130,14 @@ export default function DebtConsolidationCalculator() {
   // ── Result rows ───────────────────────────────────────────────────────────
   const summaryRows: ResultRow[] = result
     ? [
-        { label: 'New Monthly EMI',      value: result.newMonthlyEMIFmt,         highlight: true },
-        { label: 'Old Total Payment',    value: result.oldTotalMonthlyPaymentFmt },
-        { label: 'Monthly Savings',      value: result.monthlySavingsFmt },
-        { label: 'Total Debt Balance',   value: result.totalDebtBalanceFmt },
-        { label: 'Old Interest (est.)',  value: result.oldTotalInterestFmt },
-        { label: 'New Total Interest',   value: result.newTotalInterestFmt },
-        { label: 'Interest Impact',      value: result.interestDeltaFmt },
-        { label: 'Weighted Avg Rate',    value: result.weightedAvgRateFmt },
+        { label: 'New Monthly EMI',     value: result.newMonthlyEMIFmt,         highlight: true },
+        { label: 'Old Total Payment',   value: result.oldTotalMonthlyPaymentFmt },
+        { label: 'Monthly Savings',     value: result.monthlySavingsFmt },
+        { label: 'Total Debt Balance',  value: result.totalDebtBalanceFmt },
+        { label: 'Old Interest (est.)', value: result.oldTotalInterestFmt },
+        { label: 'New Total Interest',  value: result.newTotalInterestFmt },
+        { label: 'Interest Impact',     value: result.interestDeltaFmt },
+        { label: 'Weighted Avg Rate',   value: result.weightedAvgRateFmt },
       ]
     : []
 
@@ -120,8 +145,13 @@ export default function DebtConsolidationCalculator() {
     ? summaryRows.map((r) => ({ label: r.label, value: r.value }))
     : null
 
+  // Store debts as structured JSON so hydration can fully restore all fields
   const inputSnapshot = {
-    debts: debts.map((d) => `${d.label}:${d.balance}@${d.annualRate}%`).join(','),
+    debts: JSON.stringify(debts.map((d) => ({
+      balance:        d.balance,
+      annualRate:     d.annualRate,
+      monthlyPayment: d.monthlyPayment,
+    }))),
     newRate,
     newTenure,
   }
@@ -143,48 +173,52 @@ export default function DebtConsolidationCalculator() {
           <p className={styles.globalError}>{errors['existingDebts']}</p>
         )}
 
-        {debts.map((debt) => (
-          <div key={debt.id} className={styles.debtCard}>
-            <div className={styles.debtHeader}>
-              <span className={styles.debtLabel}>{debt.label}</span>
-              {debts.length > 1 && (
-                <button
-                  className={styles.removeBtn}
-                  onClick={() => removeDebt(debt.id)}
-                  aria-label={`Remove ${debt.label}`}
-                >
-                  <IconTrash />
-                </button>
-              )}
+        {debts.map((debt, index) => {
+          // Visual label derived from current array position — always sequential
+          const debtLabel = `Debt ${index + 1}`
+          return (
+            <div key={debt.id} className={styles.debtCard}>
+              <div className={styles.debtHeader}>
+                <span className={styles.debtLabel}>{debtLabel}</span>
+                {debts.length > 1 && (
+                  <button
+                    className={styles.removeBtn}
+                    onClick={() => removeDebt(debt.id)}
+                    aria-label={`Remove ${debtLabel}`}
+                  >
+                    <IconTrash />
+                  </button>
+                )}
+              </div>
+              <div className={styles.debtFields}>
+                <NumericInput
+                  label="Balance"
+                  value={debt.balance}
+                  onChange={(v) => updateDebt(debt.id, 'balance', v)}
+                  prefix="₹"
+                  placeholder="10,000"
+                  error={errors[`${debt.id}.balance`]}
+                />
+                <NumericInput
+                  label="Annual Rate"
+                  value={debt.annualRate}
+                  onChange={(v) => updateDebt(debt.id, 'annualRate', v)}
+                  suffix="%"
+                  placeholder="18"
+                  error={errors[`${debt.id}.annualRate`]}
+                />
+                <NumericInput
+                  label="Monthly Payment"
+                  value={debt.monthlyPayment}
+                  onChange={(v) => updateDebt(debt.id, 'monthlyPayment', v)}
+                  prefix="₹"
+                  placeholder="300"
+                  error={errors[`${debt.id}.monthlyPayment`]}
+                />
+              </div>
             </div>
-            <div className={styles.debtFields}>
-              <NumericInput
-                label="Balance"
-                value={debt.balance}
-                onChange={(v) => updateDebt(debt.id, 'balance', v)}
-                prefix="₹"
-                placeholder="10,000"
-                error={errors[`${debt.id}.balance`]}
-              />
-              <NumericInput
-                label="Annual Rate"
-                value={debt.annualRate}
-                onChange={(v) => updateDebt(debt.id, 'annualRate', v)}
-                suffix="%"
-                placeholder="18"
-                error={errors[`${debt.id}.annualRate`]}
-              />
-              <NumericInput
-                label="Monthly Payment"
-                value={debt.monthlyPayment}
-                onChange={(v) => updateDebt(debt.id, 'monthlyPayment', v)}
-                prefix="₹"
-                placeholder="300"
-                error={errors[`${debt.id}.monthlyPayment`]}
-              />
-            </div>
-          </div>
-        ))}
+          )
+        })}
 
         <button className={styles.addBtn} onClick={addDebt} disabled={debts.length >= 8}>
           <IconPlus />

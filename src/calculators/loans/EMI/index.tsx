@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import CalculatorShell from '../../../components/CalculatorShell/CalculatorShell'
 import NumericInput from '../../../components/NumericInput/NumericInput'
 import ResultCard, { type ResultRow } from '../../../components/ResultCard/ResultCard'
@@ -9,9 +10,24 @@ import styles from './EMI.module.css'
 const EMPTY = { principal: '', annualRate: '', tenureMonths: '' }
 
 export default function EMICalculator() {
+  const location = useLocation()
   const [fields, setFields] = useState({ ...EMPTY })
   const [errors, setErrors] = useState<Partial<Record<keyof EMIInputs, string>>>({})
   const [result, setResult] = useState<ReturnType<typeof calcEMI> | null>(null)
+
+  // Hydrate from favorites / recents navigation
+  useEffect(() => {
+    const saved = (location.state as { inputs?: Record<string, string> } | null)?.inputs
+    if (!saved) return
+    const f = { ...EMPTY, ...saved }
+    setFields(f)
+    const inputs: EMIInputs = {
+      principal:    parseFloat(f.principal)    || 0,
+      annualRate:   parseFloat(f.annualRate)   || 0,
+      tenureMonths: Math.round(parseFloat(f.tenureMonths) || 0),
+    }
+    if (!validateEMI(inputs).length) setResult(calcEMI(inputs))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function setField(key: string, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }))
@@ -25,11 +41,10 @@ export default function EMICalculator() {
   }
 
   function handleCalculate() {
-    const raw = parseFloat(fields.tenureMonths) || 0
     const inputs: EMIInputs = {
-      principal:     parseFloat(fields.principal)  || 0,
-      annualRate:    parseFloat(fields.annualRate) || 0,
-      tenureMonths:  Math.round(raw),
+      principal:    parseFloat(fields.principal)  || 0,
+      annualRate:   parseFloat(fields.annualRate) || 0,
+      tenureMonths: Math.round(parseFloat(fields.tenureMonths) || 0),
     }
     const errs = validateEMI(inputs)
     if (errs.length > 0) {
@@ -44,12 +59,12 @@ export default function EMICalculator() {
 
   const rows: ResultRow[] = result
     ? [
-        { label: 'Monthly EMI',      value: result.monthlyEMIFmt,    highlight: true },
-        { label: 'Total Payment',    value: result.totalPaymentFmt },
-        { label: 'Total Interest',   value: result.totalInterestFmt },
-        { label: 'Principal',        value: result.principalFmt },
-        { label: 'Principal %',      value: result.principalPctFmt },
-        { label: 'Interest %',       value: result.interestPctFmt },
+        { label: 'Monthly EMI',    value: result.monthlyEMIFmt,    highlight: true },
+        { label: 'Total Payment',  value: result.totalPaymentFmt },
+        { label: 'Total Interest', value: result.totalInterestFmt },
+        { label: 'Principal',      value: result.principalFmt },
+        { label: 'Principal %',    value: result.principalPctFmt },
+        { label: 'Interest %',     value: result.interestPctFmt },
       ]
     : []
 
@@ -71,7 +86,7 @@ export default function EMICalculator() {
         value={fields.principal}
         onChange={(v) => setField('principal', v)}
         prefix="₹"
-        placeholder="200,000"
+        placeholder="2,00,000"
         hint="Total amount borrowed"
         error={errors.principal}
       />

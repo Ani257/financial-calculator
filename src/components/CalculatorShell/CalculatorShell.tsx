@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Clipboard } from '@capacitor/clipboard'
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem'
 import { useFavorites, type FavoriteEntry } from '../../store/favorites'
@@ -7,6 +8,14 @@ import Button from '../Button/Button'
 import styles from './CalculatorShell.module.css'
 
 // Icons as inline SVG components — zero library overhead
+function IconChevronLeft() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  )
+}
+
 function IconStar({ filled }: { filled: boolean }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -67,6 +76,8 @@ export default function CalculatorShell({
   inputs,
   onReset,
 }: CalculatorShellProps) {
+  const navigate = useNavigate()
+
   const addFavorite = useFavorites((s) => s.add)
   const removeFavorite = useFavorites((s) => s.remove)
   const isFavorite = useFavorites((s) => s.isFavorite)
@@ -90,7 +101,6 @@ export default function CalculatorShell({
       await Clipboard.write({ string: text })
       showToast('Copied to clipboard')
     } catch {
-      // Fallback for web
       try {
         await navigator.clipboard.writeText(text)
         showToast('Copied to clipboard')
@@ -117,7 +127,6 @@ export default function CalculatorShell({
       })
       showToast(`Saved to Documents/${fileName}`)
     } catch {
-      // Web fallback: download via blob
       const blob = new Blob([csv], { type: 'text/csv' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -147,7 +156,6 @@ export default function CalculatorShell({
       }
       await addFavorite(entry)
 
-      // Also push to recents
       const recentEntry: Omit<RecentEntry, 'id' | 'calculatedAt'> = {
         calculatorId,
         calculatorName,
@@ -165,10 +173,22 @@ export default function CalculatorShell({
     <div className={styles.shell}>
       {/* Header */}
       <div className={styles.header}>
-        <div>
+        {/* Back button */}
+        <button
+          className={styles.backBtn}
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+        >
+          <IconChevronLeft />
+        </button>
+
+        {/* Title + description */}
+        <div className={styles.headerText}>
           <h1 className={styles.title}>{calculatorName}</h1>
           {description && <p className={styles.desc}>{description}</p>}
         </div>
+
+        {/* Favorite toggle */}
         <button
           className={[styles.iconBtn, favorited ? styles.favorited : ''].filter(Boolean).join(' ')}
           onClick={handleFavorite}

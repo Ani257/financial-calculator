@@ -29,16 +29,16 @@ function IconPercent() {
   )
 }
 
+// Client priority order: Investments → Loans → Business
 const categories = [
   {
-    title: 'Business',
-    description: 'Runway, burn rate, and break-even analysis for operators.',
-    route: '/business',
-    icon: <IconBriefcase />,
+    title: 'Investments',
+    description: 'Step-up SIP projections and goal-based planning.',
+    route: '/investments',
+    icon: <IconTrendingUp />,
     calculators: [
-      { id: 'cash-runway',  name: 'Cash Runway' },
-      { id: 'burn-rate',    name: 'Burn Rate' },
-      { id: 'break-even',   name: 'Break-Even' },
+      { id: 'step-up-sip',   name: 'Step-Up SIP' },
+      { id: 'goal-planner',  name: 'Goal Planner' },
     ],
   },
   {
@@ -53,13 +53,14 @@ const categories = [
     ],
   },
   {
-    title: 'Investments',
-    description: 'Step-up SIP projections and goal-based planning.',
-    route: '/investments',
-    icon: <IconTrendingUp />,
+    title: 'Business',
+    description: 'Runway, burn rate, and break-even analysis for operators.',
+    route: '/business',
+    icon: <IconBriefcase />,
     calculators: [
-      { id: 'step-up-sip',   name: 'Step-Up SIP' },
-      { id: 'goal-planner',  name: 'Goal Planner' },
+      { id: 'cash-runway',  name: 'Cash Runway' },
+      { id: 'burn-rate',    name: 'Burn Rate' },
+      { id: 'break-even',   name: 'Break-Even' },
     ],
   },
 ]

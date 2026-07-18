@@ -1,4 +1,6 @@
+import { useNavigate } from 'react-router-dom'
 import { useFavorites } from '../../store/favorites'
+import { CALCULATOR_ROUTES } from '../../utils/calculatorRoutes'
 import styles from './FavoritesPage.module.css'
 
 function IconStar() {
@@ -21,13 +23,20 @@ function IconTrash() {
 }
 
 function formatDate(ts: number) {
-  return new Intl.DateTimeFormat('en', {
+  return new Intl.DateTimeFormat('en-IN', {
     month: 'short', day: 'numeric', year: 'numeric',
   }).format(new Date(ts))
 }
 
 export default function FavoritesPage() {
   const { items, remove } = useFavorites()
+  const navigate = useNavigate()
+
+  function openCalculator(calculatorId: string, inputs: Record<string, string>) {
+    const route = CALCULATOR_ROUTES[calculatorId]
+    if (!route) return
+    navigate(route, { state: { inputs } })
+  }
 
   return (
     <div className={styles.page}>
@@ -45,7 +54,14 @@ export default function FavoritesPage() {
       ) : (
         <ul className={styles.list}>
           {items.map((item) => (
-            <li key={item.id} className={styles.card}>
+            <li
+              key={item.id}
+              className={[styles.card, styles.cardClickable].join(' ')}
+              onClick={() => openCalculator(item.calculatorId, item.inputs)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && openCalculator(item.calculatorId, item.inputs)}
+            >
               <div className={styles.cardTop}>
                 <div>
                   <span className={styles.calculatorName}>{item.calculatorName}</span>
@@ -53,7 +69,7 @@ export default function FavoritesPage() {
                 </div>
                 <button
                   className={styles.deleteBtn}
-                  onClick={() => remove(item.id)}
+                  onClick={(e) => { e.stopPropagation(); remove(item.id) }}
                   aria-label="Remove favorite"
                 >
                   <IconTrash />

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import CalculatorShell from '../../../components/CalculatorShell/CalculatorShell'
 import NumericInput from '../../../components/NumericInput/NumericInput'
 import ResultCard, { type ResultRow } from '../../../components/ResultCard/ResultCard'
@@ -17,9 +18,25 @@ const EMPTY = {
 }
 
 export default function GoalPlannerCalculator() {
+  const location = useLocation()
   const [fields, setFields] = useState({ ...EMPTY })
   const [errors, setErrors] = useState<Partial<Record<keyof GoalPlannerInputs, string>>>({})
   const [result, setResult] = useState<ReturnType<typeof calcGoalPlanner> | null>(null)
+
+  // Hydrate from favorites / recents navigation
+  useEffect(() => {
+    const saved = (location.state as { inputs?: Record<string, string> } | null)?.inputs
+    if (!saved) return
+    const f = { ...EMPTY, ...saved }
+    setFields(f)
+    const inputs: GoalPlannerInputs = {
+      targetWealth:     parseFloat(f.targetWealth)     || 0,
+      timeHorizonYears: Math.round(parseFloat(f.timeHorizonYears) || 0),
+      annualReturnPct:  parseFloat(f.annualReturnPct)  || 0,
+      currentSavings:   parseFloat(f.currentSavings)   || 0,
+    }
+    if (!validateGoalPlanner(inputs).length) setResult(calcGoalPlanner(inputs))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function setField(key: string, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }))
@@ -79,7 +96,7 @@ export default function GoalPlannerCalculator() {
         value={fields.targetWealth}
         onChange={(v) => setField('targetWealth', v)}
         prefix="₹"
-        placeholder="1,000,000"
+        placeholder="10,00,000"
         hint="The total amount you want to accumulate"
         error={errors.targetWealth}
       />

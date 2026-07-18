@@ -12,9 +12,32 @@
 /* Header */
 .header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Back chevron */
+.backBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.backBtn:hover {
+  background: var(--color-card);
+  color: var(--color-text-primary);
+}
+
+/* Title + description block — fills remaining space */
+.headerText {
+  flex: 1;
+  min-width: 0;
 }
 
 .title {

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import CalculatorShell from '../../../components/CalculatorShell/CalculatorShell'
 import NumericInput from '../../../components/NumericInput/NumericInput'
 import ResultCard, { type ResultRow } from '../../../components/ResultCard/ResultCard'
@@ -9,10 +10,25 @@ import styles from './Amortization.module.css'
 const EMPTY = { principal: '', annualRate: '', tenureMonths: '' }
 
 export default function AmortizationCalculator() {
+  const location = useLocation()
   const [fields, setFields]       = useState({ ...EMPTY })
   const [errors, setErrors]       = useState<Partial<Record<keyof EMIInputs, string>>>({})
   const [result, setResult]       = useState<ReturnType<typeof calcAmortization> | null>(null)
   const [showAll, setShowAll]     = useState(false)
+
+  // Hydrate from favorites / recents navigation
+  useEffect(() => {
+    const saved = (location.state as { inputs?: Record<string, string> } | null)?.inputs
+    if (!saved) return
+    const f = { ...EMPTY, ...saved }
+    setFields(f)
+    const inputs: EMIInputs = {
+      principal:    parseFloat(f.principal)    || 0,
+      annualRate:   parseFloat(f.annualRate)   || 0,
+      tenureMonths: Math.round(parseFloat(f.tenureMonths) || 0),
+    }
+    if (!validateEMI(inputs).length) setResult(calcAmortization(inputs))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function setField(key: string, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }))

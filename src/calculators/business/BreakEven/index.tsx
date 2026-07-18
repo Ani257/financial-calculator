@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import CalculatorShell from '../../../components/CalculatorShell/CalculatorShell'
 import NumericInput from '../../../components/NumericInput/NumericInput'
 import ResultCard, { type ResultRow } from '../../../components/ResultCard/ResultCard'
@@ -16,9 +17,24 @@ const EMPTY = {
 }
 
 export default function BreakEvenCalculator() {
+  const location = useLocation()
   const [fields, setFields] = useState({ ...EMPTY })
   const [errors, setErrors] = useState<Partial<Record<keyof BreakEvenInputs, string>>>({})
   const [result, setResult] = useState<ReturnType<typeof calcBreakEven> | null>(null)
+
+  // Hydrate from favorites / recents navigation
+  useEffect(() => {
+    const saved = (location.state as { inputs?: Record<string, string> } | null)?.inputs
+    if (!saved) return
+    const f = { ...EMPTY, ...saved }
+    setFields(f)
+    const inputs: BreakEvenInputs = {
+      fixedCosts:          parseFloat(f.fixedCosts)          || 0,
+      variableCostPerUnit: parseFloat(f.variableCostPerUnit) || 0,
+      sellingPricePerUnit: parseFloat(f.sellingPricePerUnit) || 0,
+    }
+    if (!validateBreakEven(inputs).length) setResult(calcBreakEven(inputs))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function setField(key: string, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }))
@@ -50,7 +66,6 @@ export default function BreakEvenCalculator() {
     setResult(calcBreakEven(inputs))
   }
 
-  // Result rows for CalculatorShell (copy / export / favorites)
   const resultRows: Array<{ label: string; value: string }> | null = result
     ? displayRows(result).map((r) => ({ label: r.label, value: r.value }))
     : null
@@ -103,10 +118,10 @@ export default function BreakEvenCalculator() {
 
 function displayRows(r: ReturnType<typeof calcBreakEven>): ResultRow[] {
   return [
-    { label: 'Break-Even (Units)',       value: r.breakEvenUnitsFmt,       highlight: true },
-    { label: 'Break-Even (Revenue)',      value: r.breakEvenRevenueFmt },
+    { label: 'Break-Even (Units)',        value: r.breakEvenUnitsFmt,       highlight: true },
+    { label: 'Break-Even (Revenue)',       value: r.breakEvenRevenueFmt },
     { label: 'Contribution Margin / Unit', value: r.contributionMarginFmt },
-    { label: 'Contribution Margin %',     value: r.contributionMarginPctFmt },
-    { label: 'Fixed Costs',               value: r.fixedCostsFmt },
+    { label: 'Contribution Margin %',      value: r.contributionMarginPctFmt },
+    { label: 'Fixed Costs',                value: r.fixedCostsFmt },
   ]
 }

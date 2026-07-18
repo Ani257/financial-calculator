@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import CalculatorShell from '../../../components/CalculatorShell/CalculatorShell'
 import NumericInput from '../../../components/NumericInput/NumericInput'
 import ResultCard, { type ResultRow } from '../../../components/ResultCard/ResultCard'
@@ -18,10 +19,26 @@ const EMPTY = {
 }
 
 export default function StepUpSIPCalculator() {
+  const location = useLocation()
   const [fields, setFields] = useState({ ...EMPTY })
   const [errors, setErrors] = useState<Partial<Record<keyof StepUpSIPInputs, string>>>({})
   const [result, setResult] = useState<ReturnType<typeof calcStepUpSIP> | null>(null)
   const [showBreakdown, setShowBreakdown] = useState(false)
+
+  // Hydrate from favorites / recents navigation
+  useEffect(() => {
+    const saved = (location.state as { inputs?: Record<string, string> } | null)?.inputs
+    if (!saved) return
+    const f = { ...EMPTY, ...saved }
+    setFields(f)
+    const inputs: StepUpSIPInputs = {
+      monthlyInvestment: parseFloat(f.monthlyInvestment) || 0,
+      annualStepUpPct:   parseFloat(f.annualStepUpPct)   || 0,
+      annualReturnPct:   parseFloat(f.annualReturnPct)   || 0,
+      tenureYears:       Math.round(parseFloat(f.tenureYears) || 0),
+    }
+    if (!validateStepUpSIP(inputs).length) setResult(calcStepUpSIP(inputs))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function setField(key: string, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }))
@@ -56,12 +73,12 @@ export default function StepUpSIPCalculator() {
 
   const rows: ResultRow[] = result
     ? [
-        { label: 'Estimated Wealth',        value: result.estimatedWealthFmt,    highlight: true },
-        { label: 'Total Invested',          value: result.totalInvestedFmt },
-        { label: 'Wealth Gained',           value: result.wealthGainedFmt },
-        { label: 'Absolute Return',         value: result.absoluteReturnFmt },
-        { label: 'Starting Monthly SIP',    value: result.monthlyInvestmentFmt },
-        { label: 'Final Year Monthly SIP',  value: result.finalMonthlyContribFmt },
+        { label: 'Estimated Wealth',       value: result.estimatedWealthFmt,    highlight: true },
+        { label: 'Total Invested',         value: result.totalInvestedFmt },
+        { label: 'Wealth Gained',          value: result.wealthGainedFmt },
+        { label: 'Absolute Return',        value: result.absoluteReturnFmt },
+        { label: 'Starting Monthly SIP',   value: result.monthlyInvestmentFmt },
+        { label: 'Final Year Monthly SIP', value: result.finalMonthlyContribFmt },
       ]
     : []
 
@@ -83,7 +100,7 @@ export default function StepUpSIPCalculator() {
         value={fields.monthlyInvestment}
         onChange={(v) => setField('monthlyInvestment', v)}
         prefix="₹"
-        placeholder="500"
+        placeholder="5,000"
         hint="Amount you invest each month in year 1"
         error={errors.monthlyInvestment}
       />

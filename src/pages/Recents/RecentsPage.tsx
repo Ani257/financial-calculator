@@ -1,4 +1,6 @@
+import { useNavigate } from 'react-router-dom'
 import { useRecents } from '../../store/recents'
+import { CALCULATOR_ROUTES } from '../../utils/calculatorRoutes'
 import styles from './RecentsPage.module.css'
 
 function IconClock() {
@@ -24,6 +26,13 @@ function formatRelative(ts: number) {
 
 export default function RecentsPage() {
   const { items, clear } = useRecents()
+  const navigate = useNavigate()
+
+  function openCalculator(calculatorId: string, inputs: Record<string, string>) {
+    const route = CALCULATOR_ROUTES[calculatorId]
+    if (!route) return
+    navigate(route, { state: { inputs } })
+  }
 
   return (
     <div className={styles.page}>
@@ -45,7 +54,14 @@ export default function RecentsPage() {
       ) : (
         <ul className={styles.list}>
           {items.map((item) => (
-            <li key={item.id} className={styles.card}>
+            <li
+              key={item.id}
+              className={[styles.card, styles.cardClickable].join(' ')}
+              onClick={() => openCalculator(item.calculatorId, item.inputs)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && openCalculator(item.calculatorId, item.inputs)}
+            >
               <div className={styles.cardTop}>
                 <span className={styles.calculatorName}>{item.calculatorName}</span>
                 <span className={styles.time}>{formatRelative(item.calculatedAt)}</span>

@@ -1,0 +1,39 @@
+My Tech Lead and I have conducted a strict QA pass. We found a few critical state-management bugs and need to apply UX adjustments based on new client requirements.
+
+Task #6: QA Bug Fixes & UX Reordering
+
+Please execute the following steps and stop for a checkpoint. Do NOT build any new calculators yet.
+
+Step 1: Fix Historical Burn Rate Action Bar
+
+Bug: In the Burn Rate calculator, switching to the "Historical" tab breaks the action bar (Reset, Copy, Export, Favorite do not work).
+
+Fix: Ensure the Historical mode correctly passes its inputs and result states up to the CalculatorShell so the action bar functions exactly as it does in Standard mode.
+
+Step 2: Hydrate Favorites and Recents
+
+Bug: Clicking a saved calculation in the Favorites or Recents list does nothing.
+
+Fix: Make these list items clickable. When tapped, use React Router to navigate to the specific calculator and pass the saved inputs (e.g., via route state). Update the individual calculators to read this initial state on mount and automatically run the calculation.
+
+Step 3: Fix Debt Consolidation Numbering
+
+Bug: When adding, deleting, and re-adding a debt card, the visual numbering (e.g., "Debt 1", "Debt 2") falls out of sequence.
+
+Fix: Ensure the visual title of the debt card is dynamically derived from its current array index during render (e.g., index + 1), rather than a static incrementing counter.
+
+Step 4: Add Missing Back Button
+
+Bug: There is no way to navigate back to the category listing from inside a calculator.
+
+Fix: Update the CalculatorShell header to include a native-feeling Back chevron that triggers navigate(-1).
+
+Step 5: Reorder Categories
+
+The client wants to prioritize personal finance.
+
+Update the HomePage to display the categories in this exact top-to-bottom order: 1. Investments, 2. Loans, 3. Business.
+
+Ensure the Bottom Nav reflects this priority order as well, if applicable.
+
+Ensure zero TypeScript errors remain. Stop and provide a checkpoint summary once these specific fixes are successfully implemented.
