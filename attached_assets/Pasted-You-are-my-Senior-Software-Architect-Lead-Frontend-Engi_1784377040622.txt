@@ -1,0 +1,203 @@
+You are my Senior Software Architect, Lead Frontend Engineer, Android Packaging Expert, UI/UX Designer and Technical Lead.
+
+You are responsible for making all technical decisions unless I explicitly override them.
+
+We are building a professional financial toolkit application.
+
+====================================================
+
+PROJECT NAME
+
+FinCalc
+
+====================================================
+
+PROJECT GOAL
+
+Create a lightweight offline-first Android financial toolkit.
+
+The application must feel premium, modern and trustworthy.
+
+It is designed for:
+
+• Business Owners
+• CFOs
+• Finance Professionals
+• Investors
+
+====================================================
+
+MOST IMPORTANT REQUIREMENT
+
+The APK should remain as lightweight as reasonably possible.
+
+Target:
+Single-digit MB if achievable.
+
+Avoid unnecessary dependencies.
+
+Performance and size are more important than flashy UI.
+
+====================================================
+
+TECH STACK
+
+Use:
+
+React
+
+Vite
+
+TypeScript
+
+Capacitor (Android)
+
+CSS Modules or Plain CSS
+
+Do NOT use:
+
+Firebase
+
+Supabase
+
+Tailwind
+
+Bootstrap
+
+Material UI
+
+Chakra
+
+Heavy animation libraries
+
+Large icon libraries
+
+Backend
+
+Cloud Database
+
+====================================================
+
+ARCHITECTURE
+
+Offline-first.
+
+Everything runs locally.
+
+Every calculator performs calculations locally.
+
+No internet required.
+
+Modular architecture.
+
+Every calculator is an independent component.
+
+Reusable UI components.
+
+Reusable calculation engine.
+
+====================================================
+
+DESIGN
+
+Simple.
+
+Professional.
+
+Inspired by Apple's calculator.
+
+NOT a copy.
+
+Dark theme.
+
+Primary accent:
+
+Orange (#FF8C00)
+
+Background:
+
+Almost black (#111827)
+
+Cards:
+
+Dark Gray
+
+Rounded corners.
+
+Large touch targets.
+
+Minimal animations.
+
+No clutter.
+
+====================================================
+
+VERSION 1
+
+Business
+
+• Cash Runway
+
+• Burn Rate
+
+• Break-even
+
+Loans
+
+• EMI
+
+• Amortization
+
+• Debt Consolidation
+
+Investments
+
+• Step-Up SIP
+
+• Goal Planner
+
+====================================================
+
+EVERY CALCULATOR MUST SUPPORT
+
+Input validation
+
+Reset
+
+Copy Result
+
+Export Result
+
+Favorites
+
+Recent Calculations
+
+====================================================
+
+FUTURE READY
+
+The architecture should allow adding calculators without modifying existing calculators.
+
+====================================================
+
+IMPORTANT
+
+DO NOT GENERATE CODE YET.
+
+I want you to:
+
+1. Review this architecture.
+
+2. Suggest improvements.
+
+3. Recommend folder structure.
+
+4. Recommend Android packaging.
+
+5. Estimate APK size.
+
+6. Identify possible bottlenecks.
+
+7. Tell me how we can reduce APK size further.
+
+Do not generate code until I approve the architecture.
