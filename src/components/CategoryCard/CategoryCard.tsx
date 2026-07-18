@@ -1,3 +1,4 @@
+import { type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './CategoryCard.module.css'
 
@@ -11,7 +12,7 @@ interface CategoryCardProps {
   description: string
   route: string
   calculators: Calculator[]
-  icon: React.ReactNode
+  icon: ReactNode
   accent?: string
 }
 
