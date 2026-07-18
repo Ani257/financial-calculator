@@ -33,12 +33,18 @@ function IconPercent() {
 const categories = [
   {
     title: 'Investments',
-    description: 'Step-up SIP projections and goal-based planning.',
+    description: 'SIPs, deposits, and retirement planning.',
     route: '/investments',
     icon: <IconTrendingUp />,
     calculators: [
-      { id: 'step-up-sip',   name: 'Step-Up SIP' },
-      { id: 'goal-planner',  name: 'Goal Planner' },
+      { id: 'normal-sip',         name: 'SIP' },
+      { id: 'step-up-sip',        name: 'Step-Up SIP' },
+      { id: 'goal-planner',       name: 'Goal Planner' },
+      { id: 'fd',                 name: 'FD' },
+      { id: 'rd',                 name: 'RD' },
+      { id: 'cagr',               name: 'CAGR' },
+      { id: 'swp',                name: 'SWP' },
+      { id: 'retirement-planner', name: 'Retirement' },
     ],
   },
   {
