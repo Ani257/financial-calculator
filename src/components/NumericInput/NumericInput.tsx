@@ -1,3 +1,4 @@
+import { type ChangeEvent } from 'react'
 import styles from './NumericInput.module.css'
 
 interface NumericInputProps {
@@ -29,7 +30,7 @@ export default function NumericInput({
 }: NumericInputProps) {
   const id = label.toLowerCase().replace(/\s+/g, '-')
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value
     // Allow empty, digits, one decimal point, and leading minus
     if (raw === '' || /^-?\d*\.?\d*$/.test(raw)) {

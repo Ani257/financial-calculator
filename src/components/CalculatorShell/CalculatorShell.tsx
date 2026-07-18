@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clipboard } from '@capacitor/clipboard'
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem'
@@ -58,7 +58,7 @@ interface CalculatorShellProps {
   calculatorName: string
   description?: string
   /** The form inputs — rendered above the action bar */
-  children: React.ReactNode
+  children: ReactNode
   /** Result rows for copy / export / favorites. Pass null when no result yet. */
   result: Array<{ label: string; value: string }> | null
   /** Current raw input values for saving to history */
