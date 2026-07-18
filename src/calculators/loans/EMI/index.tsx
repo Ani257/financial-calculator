@@ -70,7 +70,7 @@ export default function EMICalculator() {
         label="Loan Amount (Principal)"
         value={fields.principal}
         onChange={(v) => setField('principal', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="200,000"
         hint="Total amount borrowed"
         error={errors.principal}

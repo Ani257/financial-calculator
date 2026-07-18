@@ -78,7 +78,7 @@ export default function GoalPlannerCalculator() {
         label="Target Wealth"
         value={fields.targetWealth}
         onChange={(v) => setField('targetWealth', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="1,000,000"
         hint="The total amount you want to accumulate"
         error={errors.targetWealth}
@@ -105,7 +105,7 @@ export default function GoalPlannerCalculator() {
         label="Current Savings"
         value={fields.currentSavings}
         onChange={(v) => setField('currentSavings', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="0"
         hint="Amount already invested — leave 0 if starting fresh"
         error={errors.currentSavings}

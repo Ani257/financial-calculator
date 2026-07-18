@@ -162,7 +162,7 @@ export default function DebtConsolidationCalculator() {
                 label="Balance"
                 value={debt.balance}
                 onChange={(v) => updateDebt(debt.id, 'balance', v)}
-                prefix="$"
+                prefix="₹"
                 placeholder="10,000"
                 error={errors[`${debt.id}.balance`]}
               />
@@ -178,7 +178,7 @@ export default function DebtConsolidationCalculator() {
                 label="Monthly Payment"
                 value={debt.monthlyPayment}
                 onChange={(v) => updateDebt(debt.id, 'monthlyPayment', v)}
-                prefix="$"
+                prefix="₹"
                 placeholder="300"
                 error={errors[`${debt.id}.monthlyPayment`]}
               />

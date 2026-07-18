@@ -9,18 +9,18 @@
 // Shared helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const fmtCurrency = new Intl.NumberFormat('en-US', {
+const fmtCurrency = new Intl.NumberFormat('en-IN', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 })
 
-const fmtInt = new Intl.NumberFormat('en-US', {
+const fmtInt = new Intl.NumberFormat('en-IN', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 })
 
 function currency(v: number): string {
-  return `$${fmtCurrency.format(v)}`
+  return `₹${fmtCurrency.format(v)}`
 }
 
 function pct(v: number): string {

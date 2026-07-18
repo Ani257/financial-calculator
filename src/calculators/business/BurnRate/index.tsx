@@ -100,7 +100,7 @@ export default function BurnRateCalculator() {
             label="Current Cash Balance"
             value={fields.currentCash}
             onChange={(v) => setField('currentCash', v)}
-            prefix="$"
+            prefix="₹"
             placeholder="500,000"
             hint="Total cash available today"
             error={errors.currentCash}
@@ -109,7 +109,7 @@ export default function BurnRateCalculator() {
             label="Monthly Revenue"
             value={fields.monthlyRevenue}
             onChange={(v) => setField('monthlyRevenue', v)}
-            prefix="$"
+            prefix="₹"
             placeholder="0"
             hint="Average monthly inflows (use 0 for pre-revenue)"
             error={errors.monthlyRevenue}
@@ -118,7 +118,7 @@ export default function BurnRateCalculator() {
             label="Monthly Expenses"
             value={fields.monthlyExpenses}
             onChange={(v) => setField('monthlyExpenses', v)}
-            prefix="$"
+            prefix="₹"
             placeholder="80,000"
             hint="Total monthly cash outflows (salaries, rent, SaaS, etc.)"
             error={errors.monthlyExpenses}
@@ -208,7 +208,7 @@ function HistoricalMode() {
         label="Starting Cash"
         value={fields.startingCash}
         onChange={(v) => setField('startingCash', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="1,000,000"
         hint="Cash balance at the beginning of the period"
         error={errors.startingCash}
@@ -217,7 +217,7 @@ function HistoricalMode() {
         label="Ending Cash"
         value={fields.endingCash}
         onChange={(v) => setField('endingCash', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="640,000"
         hint="Cash balance at the end of the period"
         error={errors.endingCash}

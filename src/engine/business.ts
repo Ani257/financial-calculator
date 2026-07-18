@@ -9,14 +9,14 @@
 // Shared helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const fmt = new Intl.NumberFormat('en-US', {
+const fmt = new Intl.NumberFormat('en-IN', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 })
 
 
 export function formatCurrency(value: number): string {
-  return `$${fmt.format(value)}`
+  return `₹${fmt.format(value)}`
 }
 
 export function formatMonths(months: number): string {
@@ -34,7 +34,7 @@ export function formatRunwayDate(months: number): string {
   if (months <= 0 || !isFinite(months)) return '—'
   const d = new Date()
   d.setMonth(d.getMonth() + Math.floor(months))
-  return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(d)
+  return new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(d)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -270,7 +270,7 @@ export function calcBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
   const breakEvenUnits        = fixedCosts / contributionMargin
   const breakEvenRevenue      = breakEvenUnits * sellingPricePerUnit
 
-  const unitsFmt = new Intl.NumberFormat('en-US', {
+  const unitsFmt = new Intl.NumberFormat('en-IN', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 1,
   })
@@ -337,7 +337,7 @@ export function calcCashRunway(inputs: CashRunwayInputs): CashRunwayResult {
       const exhausted = remaining <= 0
       return {
         label: `${m} months`,
-        value: exhausted ? '$0 (exhausted)' : formatCurrency(remaining),
+        value: exhausted ? '₹0 (exhausted)' : formatCurrency(remaining),
         exhausted,
       }
     })

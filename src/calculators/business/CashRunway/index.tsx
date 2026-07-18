@@ -70,7 +70,7 @@ export default function CashRunwayCalculator() {
         label="Current Cash Balance"
         value={fields.currentCash}
         onChange={(v) => setField('currentCash', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="500,000"
         hint="Total cash available today"
         error={errors.currentCash}
@@ -79,7 +79,7 @@ export default function CashRunwayCalculator() {
         label="Monthly Net Burn Rate"
         value={fields.monthlyBurnRate}
         onChange={(v) => setField('monthlyBurnRate', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="80,000"
         hint="Net cash consumed per month (expenses minus revenue)"
         error={errors.monthlyBurnRate}

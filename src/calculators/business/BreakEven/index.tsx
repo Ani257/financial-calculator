@@ -68,7 +68,7 @@ export default function BreakEvenCalculator() {
         label="Monthly Fixed Costs"
         value={fields.fixedCosts}
         onChange={(v) => setField('fixedCosts', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="50,000"
         hint="Rent, salaries, insurance — costs that don't change with output"
         error={errors.fixedCosts}
@@ -77,7 +77,7 @@ export default function BreakEvenCalculator() {
         label="Variable Cost per Unit"
         value={fields.variableCostPerUnit}
         onChange={(v) => setField('variableCostPerUnit', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="12.50"
         hint="Materials, labour, packaging — cost per single unit produced"
         error={errors.variableCostPerUnit}
@@ -86,7 +86,7 @@ export default function BreakEvenCalculator() {
         label="Selling Price per Unit"
         value={fields.sellingPricePerUnit}
         onChange={(v) => setField('sellingPricePerUnit', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="25.00"
         hint="Revenue received per unit sold"
         error={errors.sellingPricePerUnit}

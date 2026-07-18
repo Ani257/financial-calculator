@@ -73,7 +73,7 @@ export default function AmortizationCalculator() {
         label="Loan Amount (Principal)"
         value={fields.principal}
         onChange={(v) => setField('principal', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="200,000"
         error={errors.principal}
       />

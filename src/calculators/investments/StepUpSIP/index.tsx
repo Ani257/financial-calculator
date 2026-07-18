@@ -82,7 +82,7 @@ export default function StepUpSIPCalculator() {
         label="Monthly Investment"
         value={fields.monthlyInvestment}
         onChange={(v) => setField('monthlyInvestment', v)}
-        prefix="$"
+        prefix="₹"
         placeholder="500"
         hint="Amount you invest each month in year 1"
         error={errors.monthlyInvestment}
