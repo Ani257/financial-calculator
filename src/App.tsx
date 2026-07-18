@@ -14,6 +14,9 @@ import CashRunwayCalculator  from './calculators/business/CashRunway'
 import EMICalculator               from './calculators/loans/EMI'
 import AmortizationCalculator      from './calculators/loans/Amortization'
 import DebtConsolidationCalculator from './calculators/loans/DebtConsolidation'
+// Investments calculators
+import StepUpSIPCalculator  from './calculators/investments/StepUpSIP'
+import GoalPlannerCalculator from './calculators/investments/GoalPlanner'
 import { useBootStores } from './hooks/useStores'
 import styles from './App.module.css'
 
@@ -38,24 +41,31 @@ const router = createHashRouter([
       {
         path: 'business',
         children: [
-          { index: true,            element: <BusinessPage /> },
-          { path: 'burn-rate',      element: <BurnRateCalculator /> },
-          { path: 'break-even',     element: <BreakEvenCalculator /> },
-          { path: 'cash-runway',    element: <CashRunwayCalculator /> },
+          { index: true,           element: <BusinessPage /> },
+          { path: 'burn-rate',     element: <BurnRateCalculator /> },
+          { path: 'break-even',    element: <BreakEvenCalculator /> },
+          { path: 'cash-runway',   element: <CashRunwayCalculator /> },
         ],
       },
       {
         path: 'loans',
         children: [
-          { index: true,                 element: <LoansPage /> },
-          { path: 'emi',                 element: <EMICalculator /> },
-          { path: 'amortization',        element: <AmortizationCalculator /> },
-          { path: 'debt-consolidation',  element: <DebtConsolidationCalculator /> },
+          { index: true,                element: <LoansPage /> },
+          { path: 'emi',                element: <EMICalculator /> },
+          { path: 'amortization',       element: <AmortizationCalculator /> },
+          { path: 'debt-consolidation', element: <DebtConsolidationCalculator /> },
         ],
       },
-      { path: 'investments', element: <InvestmentsPage /> },
-      { path: 'favorites',   element: <FavoritesPage /> },
-      { path: 'recents',     element: <RecentsPage /> },
+      {
+        path: 'investments',
+        children: [
+          { index: true,            element: <InvestmentsPage /> },
+          { path: 'step-up-sip',   element: <StepUpSIPCalculator /> },
+          { path: 'goal-planner',  element: <GoalPlannerCalculator /> },
+        ],
+      },
+      { path: 'favorites', element: <FavoritesPage /> },
+      { path: 'recents',   element: <RecentsPage /> },
     ],
   },
 ])

@@ -13,12 +13,14 @@ const calculators = [
   {
     id: 'step-up-sip',
     name: 'Step-Up SIP',
-    description: 'SIP projections with an annual step-up percentage.',
+    description: 'How your wealth grows when you increase your SIP every year.',
+    available: true,
   },
   {
     id: 'goal-planner',
     name: 'Goal Planner',
-    description: 'Monthly SIP needed to reach a financial goal.',
+    description: 'Find the monthly SIP required to reach your target wealth.',
+    available: true,
   },
 ]
 
