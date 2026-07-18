@@ -3,29 +3,73 @@ apply plugin: 'com.android.application'
 android {
     namespace "com.fincalc.app"
     compileSdk rootProject.ext.compileSdkVersion
+
     defaultConfig {
         applicationId "com.fincalc.app"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdkVersion rootProject.ext.minSdkVersion        // 26 — covers >95% of devices
+        targetSdkVersion rootProject.ext.targetSdkVersion  // 35
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            // Files and dirs to omit from the packaged assets dir.
+            // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+
     buildTypes {
         release {
+            // ── Size & security optimisation ──────────────────────────────
+            // R8 (successor to ProGuard) shrinks, obfuscates, and optimises
+            // Java/Kotlin bytecode. Capacitor's WebView layer runs JS, so R8
+            // only touches the thin Java shell — safe to enable aggressively.
+            minifyEnabled true
+
+            // Remove unused Android XML resources (drawables, layouts, etc.)
+            // that are not reachable from the app's manifest / code paths.
+            shrinkResources true
+
+            proguardFiles(
+                getDefaultProguardFile('proguard-android-optimize.txt'), // optimise + obfuscate
+                'proguard-rules.pro'                                      // project overrides
+            )
+
+            // Explicit optimised signing config placeholder.
+            // Replace with your own keystore before distributing:
+            //   signingConfig signingConfigs.release
+        }
+
+        debug {
+            // Keep debug unminified for fast iteration and readable stack traces.
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            shrinkResources false
+        }
+    }
+
+    // ── R8 / D8 compile options ───────────────────────────────────────────────
+    compileOptions {
+        // minSdk 26 supports Java 8 APIs natively — no desugaring library needed.
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // Exclude duplicate META-INF files that otherwise cause packaging conflicts.
+    packagingOptions {
+        resources {
+            excludes += [
+                'META-INF/LICENSE',
+                'META-INF/LICENSE.txt',
+                'META-INF/NOTICE',
+                'META-INF/NOTICE.txt',
+                'META-INF/*.kotlin_module',
+            ]
         }
     }
 }
 
 repositories {
-    flatDir{
+    flatDir {
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
 }
@@ -49,6 +93,6 @@ try {
     if (servicesJSON.text) {
         apply plugin: 'com.google.gms.google-services'
     }
-} catch(Exception e) {
+} catch (Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
