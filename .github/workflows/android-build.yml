@@ -18,13 +18,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Dependencies
+      - name: Force Install and Build
         run: |
           npm install
-          npm install -g vite
-
-      - name: Build Web Assets
-        run: vite build
+          npm install vite @vitejs/plugin-react --no-save
+          npx vite build
 
       - name: Sync Capacitor to Android
         run: npx cap sync android
